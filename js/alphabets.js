@@ -1,55 +1,31 @@
-        // Generate alphabet cards
-        const alphabets = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-        const grid = document.getElementById('alphabet-grid');
+const ALPHABET_DATA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(letter => ({
+  label: letter,
+  gif: `img/alphabets/${letter}.gif`
+}));
 
-        alphabets.forEach((letter, index) => {
-            const card = document.createElement('div');
-            card.className = 'sign-card';
-            card.style.animationDelay = `${index * 0.05}s`;
-            
-            card.innerHTML = `
-                <div class="sign-preview">${letter}</div>
-                <h4>${letter}</h4>
-            `;
-            
-            card.onclick = () => openModal(letter);
-            grid.appendChild(card);
-        });
+document.addEventListener('DOMContentLoaded', () => {
+  const grid = document.getElementById('alphabet-grid');
+  if (!grid) return;
+  grid.innerHTML = ALPHABET_DATA.map(item => `
+    <div class="sign-tile" data-label="${item.label}" data-gif="${item.gif}" tabindex="0" role="button" aria-label="Show sign for ${item.label}">
+      <span class="tile-letter">${item.label}</span>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.sign-tile').forEach(tile => {
+    tile.addEventListener('click', () => openSignModal(tile.dataset.label, tile.dataset.gif));
+    tile.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();tile.click();} });
+  });
+});
 
-        // Modal functions
-        function openModal(sign) {
-            const modal = document.getElementById('signModal');
-            const title = document.getElementById('modal-title');
-            const gif = document.getElementById('modal-gif');
-            
-            title.textContent = `Sign: ${sign}`;
-            gif.innerHTML = `<img src="img/${sign}.gif" alt="Sign ${sign}">`;
-            
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('signModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Close modal on outside click
-        document.getElementById('signModal').addEventListener('click', (e) => {
-            if (e.target.id === 'signModal') {
-                closeModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-            }
-        });
-
-        // Page load
-        window.addEventListener('load', () => {
-            document.body.classList.add('loaded');
-        });
+function openSignModal(label, gifSrc) {
+  document.getElementById('modal-title').textContent = `Letter "${label}"`;
+  document.getElementById('modal-gif').innerHTML = `<img src="${gifSrc}" alt="Sign for ${label}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'gif-placeholder',textContent:'🤟'}))">`;
+  document.getElementById('signModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('signModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('click', e => { if(e.target===document.getElementById('signModal')) closeModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
